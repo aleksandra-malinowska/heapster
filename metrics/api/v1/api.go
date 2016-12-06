@@ -21,19 +21,31 @@ import (
 
 	"k8s.io/heapster/metrics/api/v1/types"
 	"k8s.io/heapster/metrics/core"
-	metricsink "k8s.io/heapster/metrics/sinks/metric"
 )
+
+type metricSinkApi interface {
+	GetContainersForPodFromNamespace(namespace, pod string) []string
+	GetLabeledMetric(metricName string, labels map[string]string, keys []string, start, end time.Time) map[string][]core.TimestampedMetricValue
+	GetMetric(metricName string, keys []string, start, end time.Time) map[string][]core.TimestampedMetricValue
+	GetMetricNames(key string) []string
+	GetMetricSetKeys() []string
+	GetNamespaces() []string
+	GetNodes() []string
+	GetPodsFromNamespace(namespace string) []string
+	GetShortStore() []*core.DataBatch
+	GetSystemContainersFromNode(node string) []string
+}
 
 type Api struct {
 	runningInKubernetes bool
-	metricSink          *metricsink.MetricSink
+	metricSink          metricSinkApi
 	historicalSource    core.HistoricalSource
 	gkeMetrics          map[string]core.MetricDescriptor
 	gkeLabels           map[string]core.LabelDescriptor
 }
 
 // Create a new Api to serve from the specified cache.
-func NewApi(runningInKubernetes bool, metricSink *metricsink.MetricSink, historicalSource core.HistoricalSource) *Api {
+func NewApi(runningInKubernetes bool, metricSink metricSinkApi, historicalSource core.HistoricalSource) *Api {
 	gkeMetrics := make(map[string]core.MetricDescriptor)
 	gkeLabels := make(map[string]core.LabelDescriptor)
 	for _, val := range core.StandardMetrics {
