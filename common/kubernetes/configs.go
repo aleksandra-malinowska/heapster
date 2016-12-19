@@ -121,6 +121,8 @@ func GetKubeClientConfig(uri *url.URL) (*kube_client.Config, error) {
 		return nil, fmt.Errorf("invalid kubernetes master url specified")
 	}
 
+	kubeConfig.ContentType = "application/vnd.kubernetes.protobuf"
+
 	useServiceAccount := defaultUseServiceAccount
 	if len(opts["useServiceAccount"]) >= 1 {
 		useServiceAccount, err = strconv.ParseBool(opts["useServiceAccount"][0])
