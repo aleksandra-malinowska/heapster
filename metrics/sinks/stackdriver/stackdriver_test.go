@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	sd_api "google.golang.org/api/monitoring/v3"
 	"k8s.io/heapster/metrics/core"
 )
 
@@ -33,6 +34,14 @@ func generateFloatMetric(value float32) core.MetricValue {
 		ValueType:  core.ValueFloat,
 		FloatValue: value,
 	}
+}
+
+func deepCopy(source map[string]string) map[string]string {
+	result := map[string]string{}
+	for k, v := range source {
+		result[k] = v
+	}
+	return result
 }
 
 func TestTranslateUptime(t *testing.T) {
@@ -74,4 +83,47 @@ func TestTranslateCpuLimit(t *testing.T) {
 	as.Equal(ts.Metric.Type, "container.googleapis.com/container/cpu/reserved_cores")
 	as.Equal(len(ts.Points), 1)
 	as.Equal(ts.Points[0].Value.DoubleValue, 2.0)
+}
+
+func TestTranslateMemoryLimitNode(t *testing.T) {
+	metricValue := generateIntMetric(2048)
+	name := "memory/limit"
+	timestamp := time.Now()
+
+	labels := deepCopy(commonLabels)
+	labels["type"] = core.MetricSetTypeNode
+
+	ts := sink.TranslateMetric(timestamp, labels, name, metricValue, timestamp)
+
+	var expected *sd_api.TimeSeries = nil
+
+	as := assert.New(t)
+	as.Equal(ts, expected)
+}
+
+func TestTranslateMemoryLimitPod(t *testing.T) {
+	metricValue := generateIntMetric(2048)
+	name := "memory/limit"
+	timestamp := time.Now()
+
+	labels := deepCopy(commonLabels)
+	labels["type"] = core.MetricSetTypePod
+
+	ts := sink.TranslateMetric(timestamp, labels, name, metricValue, timestamp)
+
+	as := assert.New(t)
+	as.Equal(len(ts.Points), 1)
+	as.Equal(ts.Points[0].Value.Int64Value, int64(2048))
+}
+
+func TestTranslateMemoryNodeAllocatable(t *testing.T) {
+	metricValue := generateIntMetric(2048)
+	name := "memory/node_allocatable"
+	timestamp := time.Now()
+
+	ts := sink.TranslateMetric(timestamp, commonLabels, name, metricValue, timestamp)
+
+	as := assert.New(t)
+	as.Equal(len(ts.Points), 1)
+	as.Equal(ts.Points[0].Value.Int64Value, int64(2048))
 }
