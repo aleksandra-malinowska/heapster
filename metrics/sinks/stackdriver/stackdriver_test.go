@@ -112,6 +112,7 @@ func TestTranslateMemoryLimitPod(t *testing.T) {
 	ts := sink.TranslateMetric(timestamp, labels, name, metricValue, timestamp)
 
 	as := assert.New(t)
+	as.Equal(ts.Metric.Type, "container.googleapis.com/container/memory/bytes_total")
 	as.Equal(len(ts.Points), 1)
 	as.Equal(ts.Points[0].Value.Int64Value, int64(2048))
 }
@@ -124,6 +125,35 @@ func TestTranslateMemoryNodeAllocatable(t *testing.T) {
 	ts := sink.TranslateMetric(timestamp, commonLabels, name, metricValue, timestamp)
 
 	as := assert.New(t)
+	as.Equal(ts.Metric.Type, "container.googleapis.com/container/memory/bytes_total")
 	as.Equal(len(ts.Points), 1)
 	as.Equal(ts.Points[0].Value.Int64Value, int64(2048))
+}
+
+func TestTranslateMemoryMajorPageFaults(t *testing.T) {
+	metricValue := generateIntMetric(20)
+	name := "memory/major_page_faults"
+	timestamp := time.Now()
+
+	ts := sink.TranslateMetric(timestamp, commonLabels, name, metricValue, timestamp)
+
+	as := assert.New(t)
+	as.Equal(ts.Metric.Type, "container.googleapis.com/container/memory/page_fault_count")
+	as.Equal(len(ts.Points), 1)
+	as.Equal(ts.Points[0].Value.Int64Value, int64(20))
+	as.Equal(ts.Metric.Labels["fault_type"], "major")
+}
+
+func TestTranslateMemoryMinorPageFaults(t *testing.T) {
+	metricValue := generateIntMetric(42)
+	name := "memory/minor_page_faults"
+	timestamp := time.Now()
+
+	ts := sink.TranslateMetric(timestamp, commonLabels, name, metricValue, timestamp)
+
+	as := assert.New(t)
+	as.Equal(ts.Metric.Type, "container.googleapis.com/container/memory/page_fault_count")
+	as.Equal(len(ts.Points), 1)
+	as.Equal(ts.Points[0].Value.Int64Value, int64(42))
+	as.Equal(ts.Metric.Labels["fault_type"], "minor")
 }
