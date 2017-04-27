@@ -61,3 +61,17 @@ func TestTranslateCpuUsage(t *testing.T) {
 	as.Equal(len(ts.Points), 1)
 	as.Equal(ts.Points[0].Value.DoubleValue, 3600.0)
 }
+
+func TestTranslateCpuLimit(t *testing.T) {
+	metricValue := generateIntMetric(2000)
+	name := "cpu/limit"
+	timestamp := time.Now()
+	createTime := timestamp.Add(-time.Second)
+
+	ts := sink.TranslateMetric(timestamp, commonLabels, name, metricValue, createTime)
+
+	as := assert.New(t)
+	as.Equal(ts.Metric.Type, "container.googleapis.com/container/cpu/reserved_cores")
+	as.Equal(len(ts.Points), 1)
+	as.Equal(ts.Points[0].Value.DoubleValue, 2.0)
+}
