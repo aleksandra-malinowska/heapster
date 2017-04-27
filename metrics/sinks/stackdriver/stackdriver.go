@@ -169,7 +169,7 @@ func (sink *StackdriverSink) ExportData(dataBatch *core.DataBatch) {
 		}
 
 		for _, metric := range metricSet.LabeledMetrics {
-			point := sink.translateLabeledMetric(dataBatch.Timestamp, metricSet.Labels, metric, metricSet.CreateTime)
+			point := sink.TranslateLabeledMetric(dataBatch.Timestamp, metricSet.Labels, metric, metricSet.CreateTime)
 
 			if point != nil {
 				req.TimeSeries = append(req.TimeSeries, point)
@@ -267,7 +267,7 @@ func (sink *StackdriverSink) preprocessMemoryMetrics(metricSet *core.MetricSet) 
 	metricSet.MetricValues["memory/minor_page_faults"] = minorMemoryFaults
 }
 
-func (sink *StackdriverSink) translateLabeledMetric(timestamp time.Time, labels map[string]string, metric core.LabeledMetric, createTime time.Time) *sd_api.TimeSeries {
+func (sink *StackdriverSink) TranslateLabeledMetric(timestamp time.Time, labels map[string]string, metric core.LabeledMetric, createTime time.Time) *sd_api.TimeSeries {
 	resourceLabels := sink.getResourceLabels(labels)
 	switch metric.Name {
 	case core.MetricFilesystemUsage.MetricDescriptor.Name:

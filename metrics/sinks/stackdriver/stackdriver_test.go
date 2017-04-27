@@ -157,3 +157,16 @@ func TestTranslateMemoryMinorPageFaults(t *testing.T) {
 	as.Equal(ts.Points[0].Value.Int64Value, int64(42))
 	as.Equal(ts.Metric.Labels["fault_type"], "minor")
 }
+
+func TestTranslateMemoryBytesUsed(t *testing.T) {
+	metricValue := generateIntMetric(987)
+	name := "memory/bytes_used"
+	timestamp := time.Now()
+
+	ts := sink.TranslateMetric(timestamp, commonLabels, name, metricValue, timestamp)
+
+	as := assert.New(t)
+	as.Equal(ts.Metric.Type, "container.googleapis.com/container/memory/bytes_used")
+	as.Equal(len(ts.Points), 1)
+	as.Equal(ts.Points[0].Value.Int64Value, int64(987))
+}
